@@ -1,177 +1,138 @@
 import json
 
-from app.services.llm_service import perguntar_llm, client
-
+from app.services.llm_service import perguntar_llm
 from app.tools.task_tools import (
-    tool_adicionar_tarefa,
-    tool_listar_tarefas,
-    tool_concluir_tarefa
+    adicionar_tarefa,
+    listar_tarefas,
+    concluir_tarefa
 )
 
 from app.tools.agenda_tools import (
-    consultar_agenda,
-    adicionar_evento_agenda
+    adicionar_evento_agenda,
+    consultar_agenda
 )
 
 from app.tools.rag_tools import buscar_material_rag
+from app.tools.learning_tools import gerar_pergunta_active_recall
 
-from app.tools.learning_tools import (
-    gerar_pergunta_estudo
-)
+
+TOOLS = {
+    "adicionar_tarefa": adicionar_tarefa,
+    "listar_tarefas": listar_tarefas,
+    "concluir_tarefa": concluir_tarefa,
+    "adicionar_evento_agenda": adicionar_evento_agenda,
+    "consultar_agenda": consultar_agenda,
+    "buscar_material_rag": buscar_material_rag,
+    "gerar_pergunta_active_recall": gerar_pergunta_active_recall,
+}
+
+
+SYSTEM_PROMPT = """
+Você é o JARVIS Acadêmico, um assistente inteligente para estudantes.
+
+Você possui acesso às seguintes ferramentas:
+
+1. adicionar_tarefa
+- adiciona uma tarefa
+- argumento esperado:
+{
+  "tarefa": "texto"
+}
+
+2. listar_tarefas
+- lista tarefas cadastradas
+- sem argumentos
+
+3. concluir_tarefa
+- conclui uma tarefa
+- argumento esperado:
+{
+  "id": numero
+}
+
+4. adicionar_evento_agenda
+- adiciona um evento na agenda
+- argumentos esperados:
+{
+  "titulo": "texto",
+  "data": "YYYY-MM-DD"
+}
+
+5. consultar_agenda
+- consulta eventos da agenda
+- sem argumentos
+
+6. buscar_material_rag
+- busca conteúdo nos PDFs
+- argumento esperado:
+{
+  "query": "texto"
+}
+
+7. gerar_pergunta_active_recall
+- gera perguntas de estudo
+- argumento esperado:
+{
+  "tema": "texto"
+}
+
+REGRAS IMPORTANTES:
+- Quando precisar usar uma ferramenta, responda APENAS com JSON válido.
+- Nunca coloque explicações antes ou depois do JSON.
+- Quando NÃO precisar de ferramenta, responda normalmente.
+- Nunca invente ferramentas.
+"""
 
 
 def executar_tool(tool_name, arguments):
+    tool_function = TOOLS.get(tool_name)
 
-    if tool_name == 'listar_tarefas':
-        return tool_listar_tarefas()
+    if not tool_function:
+        return f"Ferramenta '{tool_name}' não encontrada."
 
-    elif tool_name == 'adicionar_tarefa':
+    try:
+        return tool_function(**arguments)
 
-        descricao = (
-            arguments.get('descricao')
-            or arguments.get('task')
-            or arguments.get('tarefa')
-            or arguments.get('texto')
-        )
-
-        return tool_adicionar_tarefa(descricao)
-
-    elif tool_name == 'concluir_tarefa':
-
-        task_id = (
-            arguments.get('task_id')
-            or arguments.get('id')
-        )
-
-        return tool_concluir_tarefa(task_id)
-
-    elif tool_name == 'consultar_agenda':
-        return consultar_agenda()
-
-    elif tool_name == 'adicionar_evento_agenda':
-
-        titulo = (
-            arguments.get('titulo')
-            or arguments.get('title')
-            or arguments.get('evento')
-            or arguments.get('nome')
-        )
-
-        data = (
-            arguments.get('data')
-            or arguments.get('date')
-            or arguments.get('dia')
-            or arguments.get('dia_semana')
-            or arguments.get('quando')
-        )
-
-        tipo = (
-            arguments.get('tipo')
-            or arguments.get('type')
-        )
-
-        if not tipo:
-
-            titulo_lower = str(titulo).lower()
-
-            if 'prova' in titulo_lower:
-                tipo = 'prova'
-
-            elif 'aula' in titulo_lower:
-                tipo = 'aula'
-
-            else:
-                tipo = 'evento'
-
-        return adicionar_evento_agenda(
-            titulo,
-            data,
-            tipo
-        )
-
-    elif tool_name == 'buscar_material_rag':
-
-        pergunta = (
-            arguments.get('pergunta')
-            or arguments.get('question')
-            or arguments.get('texto')
-        )
-
-        contexto = buscar_material_rag(pergunta)
-
-        return gerar_resposta_final(
-            pergunta,
-            contexto
-        )
-
-    elif tool_name == 'gerar_pergunta_estudo':
-
-        topico = (
-            arguments.get('topico')
-            or arguments.get('topic')
-            or arguments.get('texto')
-        )
-
-        return gerar_pergunta_estudo(topico)
-
-    return 'Ferramenta não encontrada.'
-
-
-def gerar_resposta_final(pergunta, contexto):
-
-    prompt = f'''
-Você é um assistente acadêmico.
-
-Responda utilizando SOMENTE o contexto abaixo.
-
-Contexto:
-{contexto}
-
-Pergunta:
-{pergunta}
-'''
-
-    resposta = client.chat.completions.create(
-        model='google/gemma-3-12b-it',
-        messages=[
-            {
-                'role': 'user',
-                'content': prompt
-            }
-        ]
-    )
-
-    return resposta.choices[0].message.content
+    except Exception as e:
+        return f"[ERRO TOOL CALLING] {str(e)}"
 
 
 def processar_mensagem(mensagem):
-
-    resposta_llm = perguntar_llm(mensagem)
+    resposta_llm = perguntar_llm(
+        mensagem_usuario=mensagem,
+        system_prompt=SYSTEM_PROMPT
+    )
 
     try:
+        tool_call = json.loads(resposta_llm)
 
-        resposta_limpa = (
-            resposta_llm
-            .replace('```json', '')
-            .replace('```', '')
-            .strip()
+        tool_name = tool_call.get("tool")
+        arguments = tool_call.get("arguments", {})
+
+        resultado_tool = executar_tool(tool_name, arguments)
+
+        prompt_final = f"""
+O usuário enviou a seguinte mensagem:
+{mensagem}
+
+Uma ferramenta foi utilizada.
+
+Ferramenta:
+{tool_name}
+
+Resultado da ferramenta:
+{resultado_tool}
+
+Agora responda ao usuário de forma natural, amigável e útil.
+NÃO mostre JSON.
+NÃO explique ferramentas internas.
+"""
+
+        resposta_final = perguntar_llm(
+            mensagem_usuario=prompt_final
         )
 
-        resposta_json = json.loads(resposta_limpa)
+        return resposta_final
 
-        tool_name = resposta_json['tool']
-
-        arguments = resposta_json.get('arguments', {})
-
-        resultado_tool = executar_tool(
-            tool_name,
-            arguments
-        )
-
-        return resultado_tool
-
-    except Exception as erro:
-
-        print(f'\n[ERRO TOOL CALLING] {erro}\n')
-
+    except json.JSONDecodeError:
         return resposta_llm
