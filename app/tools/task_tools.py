@@ -7,7 +7,19 @@ from app.models.task_model import (
 from app.services.logging_service import registrar_log
 
 
-def tool_adicionar_tarefa(descricao):
+def tool_adicionar_tarefa(descricao=None, **kwargs):
+
+    # normalização de entrada da LLM
+    if not descricao:
+        descricao = (
+            kwargs.get("tarefa")
+            or kwargs.get("task")
+            or kwargs.get("texto")
+            or kwargs.get("title")
+        )
+
+    if not descricao:
+        return "[ERRO] descrição da tarefa não informada."
 
     adicionar_tarefa(descricao)
 
@@ -46,6 +58,9 @@ def tool_listar_tarefas():
 
 
 def tool_concluir_tarefa(task_id):
+
+    if not task_id:
+        return "[ERRO] id da tarefa não informado."
 
     concluir_tarefa(task_id)
 

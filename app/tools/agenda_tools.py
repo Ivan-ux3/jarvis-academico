@@ -33,7 +33,39 @@ def consultar_agenda():
     return resposta
 
 
-def adicionar_evento_agenda(titulo, data, tipo):
+def adicionar_evento_agenda(titulo=None, data=None, tipo=None, **kwargs):
+
+    # 🔥 normalização de argumentos (corrige erro da LLM)
+    if not titulo:
+        titulo = (
+            kwargs.get("evento")
+            or kwargs.get("nome")
+            or kwargs.get("title")
+        )
+
+    if not data:
+        data = (
+            kwargs.get("date")
+            or kwargs.get("dia")
+            or kwargs.get("quando")
+        )
+
+    if not tipo:
+        tipo = kwargs.get("tipo") or kwargs.get("type")
+
+        if not tipo and titulo:
+            titulo_lower = str(titulo).lower()
+
+            if "prova" in titulo_lower:
+                tipo = "prova"
+            elif "aula" in titulo_lower:
+                tipo = "aula"
+            else:
+                tipo = "evento"
+
+    # 🔥 validação obrigatória
+    if not titulo or not data:
+        return "[ERRO] titulo ou data não informados."
 
     adicionar_evento(titulo, data, tipo)
 
