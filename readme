@@ -1,4 +1,4 @@
-Trabalho de Inteligência Artificial
+# Trabalho de Inteligência Artificial
 Alunos: Laura Santa Cruz Rodrigues e Ivan Francisco Santos da Silva
 
 # JARVIS Acadêmico
@@ -15,7 +15,7 @@ O projeto utiliza o padrão de **Tool Calling**: o LLM decide, com base na mensa
 
 ### Arquitetura geral
 
-```
+```text
 Usuário → Streamlit → chat_controller → LLM (via API)
                                 ↓
                     Ferramentas disponíveis:
@@ -27,9 +27,16 @@ Usuário → Streamlit → chat_controller → LLM (via API)
 
 ---
 
+## Fluxo do sistema
+
+O fluxo do sistema funciona da seguinte forma: o usuário envia uma dúvida ou comando pela interface do sistema, seja pelo terminal ou pela interface gráfica em Streamlit. A camada View recebe essa entrada e a encaminha para o Controller, responsável por coordenar o funcionamento da aplicação. O Controller então envia a mensagem para a LLM Gemma através da camada de Service. A LLM analisa o contexto da solicitação e decide de forma autônoma se deve responder diretamente ou utilizar alguma ferramenta do sistema, como consultar a agenda, acessar a lista de tarefas ou buscar informações nos materiais utilizando o RAG. Quando uma ferramenta é necessária, o Controller executa a tool correspondente, obtém o resultado e devolve essas informações para a LLM. Com base nesses dados, a Gemma gera uma resposta contextualizada e mais precisa. Por fim, o Controller envia a resposta final para a View, que exibe o conteúdo ao usuário.
+
+---
+
 ## Funcionalidades
 
 ### RAG — Busca em PDFs
+
 O sistema indexa os PDFs em `data/documentos/pdfs/` usando embeddings e um banco vetorial (ChromaDB). Quando o usuário faz uma pergunta sobre o conteúdo, o assistente recupera os trechos mais relevantes e gera uma resposta com base neles.
 
 Atualmente os PDFs disponíveis são sobre **Redes de Computadores**:
@@ -38,19 +45,22 @@ Atualmente os PDFs disponíveis são sobre **Redes de Computadores**:
 - Comunicação entre processos
 
 ### Agenda Acadêmica
+
 Permite adicionar e consultar eventos acadêmicos como provas, aulas e outros compromissos, com data e tipo do evento.
 
 ### Lista de Tarefas
+
 Gerenciamento simples de tarefas com adição, listagem e marcação como concluída.
 
 ### Active Recall
+
 Com base nos materiais indexados, o assistente gera perguntas para testar o conhecimento do aluno — uma técnica comprovada de memorização ativa.
 
 ---
 
 ## Pré-requisitos
 
-- Python **3.10 ou superior**
+- Python 3.10 ou superior
 - Git
 - Chave de API fornecida pelo professor (ou própria)
 
@@ -61,23 +71,25 @@ Com base nos materiais indexados, o assistente gera perguntas para testar o conh
 ### 1. Clone o repositório
 
 ```bash
-git clone https://github.com/Ivan-ux3/jarvis-academico
-cd jarvis-academico-main
+git clone https://github.com/Ivan-ux3/jarvis-academico.git
+cd jarvis-academico
 ```
 
-> Caso tenha baixado o projeto como `.zip`, descompacte e entre na pasta. Atenção: o zip gera uma pasta dentro de outra (`jarvis-academico-main/jarvis-academico-main`), entre na pasta interna.
+> Caso tenha baixado o projeto como `.zip`, descompacte e entre na pasta do projeto.
 
 ---
 
 ### 2. Crie e ative o ambiente virtual
 
-**Windows:**
+#### Windows
+
 ```bash
 python -m venv venv
 venv\Scripts\activate
 ```
 
-**Linux/Mac:**
+#### Linux/Mac
+
 ```bash
 python -m venv venv
 source venv/bin/activate
@@ -97,32 +109,57 @@ pip install -r requirements.txt
 
 Crie um arquivo chamado `.env` na raiz do projeto com o seguinte conteúdo:
 
-```dotenv
+```env
 API_KEY=sua_chave_de_api_aqui
-BASE_URL=https://api.aigc.dev/v1
+BASE_URL=https://llm.liaufms.org/v1/gemma-3-12b-it
 MODEL_NAME=google/gemma-3-12b-it
 ```
 
-> **Regras importantes para o `.env`:**
-> - **Sem aspas** nos valores
-> - **Sem espaços** ao redor do `=`
-> - Use `BASE_URL` com **underline** (não `BASE-URL` com traço)
-> - Nunca suba esse arquivo para o Git (ele já está no `.gitignore`)
+> Regras importantes:
+>
+> - Não utilizar aspas
+> - Não deixar espaços ao redor do `=`
+> - Utilizar `BASE_URL` com underline
+> - O arquivo `.env` não deve ser enviado para o GitHub
 
 ---
 
-### 5. Execute o projeto
+### 5. Adicione os PDFs para o RAG
 
-**Interface Web (Streamlit) — recomendado:**
+Os arquivos PDF utilizados como base de conhecimento devem ser colocados em:
+
+```text
+data/documentos/pdfs/
+```
+
+O sistema fará automaticamente:
+- leitura dos PDFs
+- chunking
+- geração de embeddings
+- indexação vetorial no ChromaDB
+
+Os materiais atuais utilizados no projeto são relacionados à disciplina de Redes de Computadores.
+
+---
+
+### 6. Execute o projeto
+
+#### Interface Web (Streamlit) — recomendado
+
 ```bash
 streamlit run app/frontend/streamlit_app.py
 ```
 
-O navegador abrirá automaticamente em `http://localhost:8501`.
+O navegador abrirá automaticamente em:
 
-**Interface de linha de comando (CLI):**
+```text
+http://localhost:8501
+```
+
+#### Interface de linha de comando (CLI)
+
 ```bash
-python app/main.py
+python -m app.main
 ```
 
 ---
@@ -130,7 +167,8 @@ python app/main.py
 ## Exemplos de uso
 
 ### Busca em PDFs (RAG)
-```
+
+```text
 Explique TCP
 O que é handshake?
 Qual a diferença entre TCP e UDP?
@@ -138,63 +176,79 @@ O que são chamadas bloqueantes em sockets?
 ```
 
 ### Agenda acadêmica
-```
+
+```text
 Adicionar prova de redes amanhã
 Adicionar aula de SO na segunda-feira
 Consultar agenda
 ```
 
 ### Lista de tarefas
-```
+
+```text
 Adicionar tarefa estudar DNS
 Adicionar tarefa revisar camada de transporte
 Listar tarefas
 ```
 
 ### Active Recall
-```
+
+```text
 Me faça uma pergunta sobre TCP
 Quero praticar comunicação entre processos
 ```
 
 ---
 
+## Logs do sistema
+
+O sistema registra logs das ferramentas utilizadas pela LLM, incluindo:
+- ferramenta chamada
+- argumentos recebidos
+- saída retornada
+
+Os logs são utilizados para depuração e análise do comportamento do agente.
+
+---
+
 ## Estrutura do projeto
 
-```
-jarvis-academico-main/
+```text
+jarvis-academico/
 ├── app/
 │   ├── controllers/
-│   │   └── chat_controller.py   # Orquestra mensagens e execução das ferramentas
+│   │   └── chat_controller.py
 │   ├── frontend/
-│   │   └── streamlit_app.py     # Interface web com Streamlit
+│   │   └── streamlit_app.py
 │   ├── learning/
-│   │   └── active_recall.py     # Geração e avaliação de perguntas de estudo
+│   │   └── active_recall.py
 │   ├── models/
-│   │   ├── db.py                # Criação do banco de dados SQLite
-│   │   ├── task_model.py        # Modelo de tarefas
-│   │   └── agenda_model.py      # Modelo de eventos da agenda
+│   │   ├── db.py
+│   │   ├── task_model.py
+│   │   └── agenda_model.py
 │   ├── rag/
-│   │   ├── ingest.py            # Leitura e processamento dos PDFs
-│   │   ├── chunking.py          # Divisão do texto em chunks
-│   │   ├── embeddings.py        # Geração de embeddings
-│   │   ├── retrieval.py         # Busca vetorial no ChromaDB
-│   │   └── index_documents.py   # Script de indexação
+│   │   ├── ingest.py
+│   │   ├── chunking.py
+│   │   ├── embeddings.py
+│   │   ├── retrieval.py
+│   │   └── index_documents.py
 │   ├── services/
-│   │   ├── llm_service.py       # Integração com a API LLM
-│   │   └── logging_service.py   # Registro de logs das ações
+│   │   ├── llm_service.py
+│   │   └── logging_service.py
 │   ├── tools/
-│   │   ├── agenda_tools.py      # Ferramentas de agenda
-│   │   ├── task_tools.py        # Ferramentas de tarefas
-│   │   ├── rag_tools.py         # Ferramenta de busca em PDFs
-│   │   └── learning_tools.py    # Ferramenta de Active Recall
-│   └── main.py                  # Ponto de entrada CLI
+│   │   ├── agenda_tools.py
+│   │   ├── task_tools.py
+│   │   ├── rag_tools.py
+│   │   └── learning_tools.py
+│   └── main.py
 ├── data/
-│   ├── chroma/                  # Banco vetorial (gerado automaticamente)
-│   └── documentos/pdfs/         # PDFs usados como base de conhecimento
+│   ├── chroma/
+│   └── documentos/
+│       └── pdfs/
+├── logs/
 ├── requirements.txt
 ├── .gitignore
-└── .env                         # Configuração local (não versionar!)
+└── .env
 ```
 
 ---
@@ -203,12 +257,12 @@ jarvis-academico-main/
 
 | Tecnologia | Uso |
 |---|---|
-| [Streamlit](https://streamlit.io/) | Interface web |
-| [OpenAI SDK](https://github.com/openai/openai-python) | Comunicação com a API LLM |
-| [ChromaDB](https://www.trychroma.com/) | Banco vetorial para RAG |
-| [sentence-transformers](https://www.sbert.net/) | Geração de embeddings |
-| [pypdf](https://pypdf.readthedocs.io/) | Leitura de PDFs |
-| [python-dotenv](https://pypi.org/project/python-dotenv/) | Gerenciamento de variáveis de ambiente |
+| Streamlit | Interface web |
+| OpenAI SDK | Comunicação com a API LLM |
+| ChromaDB | Banco vetorial para RAG |
+| sentence-transformers | Geração de embeddings |
+| pypdf | Leitura de PDFs |
+| python-dotenv | Gerenciamento de variáveis de ambiente |
 | SQLite | Banco de dados para tarefas e agenda |
 
 ---
