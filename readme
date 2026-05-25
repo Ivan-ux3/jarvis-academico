@@ -1,0 +1,220 @@
+Trabalho de Inteligência Artificial
+Alunos: Laura Santa Cruz Rodrigues e Ivan Francisco Santos da Silva
+
+# JARVIS Acadêmico
+
+> Assistente inteligente para estudantes, com RAG sobre PDFs, agenda acadêmica, lista de tarefas e Active Recall — tudo em linguagem natural.
+
+---
+
+## Sobre o projeto
+
+O **JARVIS Acadêmico** é um assistente conversacional desenvolvido em Python que combina um agente LLM com ferramentas práticas voltadas para a rotina de estudos. O objetivo é permitir que o aluno interaja em linguagem natural para organizar tarefas, consultar materiais acadêmicos e praticar os conteúdos estudados.
+
+O projeto utiliza o padrão de **Tool Calling**: o LLM decide, com base na mensagem do usuário, qual ferramenta acionar — e o sistema executa a ação correspondente (buscar um documento, adicionar uma tarefa, gerar uma pergunta de estudo, etc.).
+
+### Arquitetura geral
+
+```
+Usuário → Streamlit → chat_controller → LLM (via API)
+                                ↓
+                    Ferramentas disponíveis:
+                    ├── RAG (busca em PDFs)
+                    ├── Agenda acadêmica
+                    ├── Lista de tarefas
+                    └── Active Recall
+```
+
+---
+
+## Funcionalidades
+
+### RAG — Busca em PDFs
+O sistema indexa os PDFs em `data/documentos/pdfs/` usando embeddings e um banco vetorial (ChromaDB). Quando o usuário faz uma pergunta sobre o conteúdo, o assistente recupera os trechos mais relevantes e gera uma resposta com base neles.
+
+Atualmente os PDFs disponíveis são sobre **Redes de Computadores**:
+- Camada de Transporte
+- Chamadas bloqueantes em sockets
+- Comunicação entre processos
+
+### Agenda Acadêmica
+Permite adicionar e consultar eventos acadêmicos como provas, aulas e outros compromissos, com data e tipo do evento.
+
+### Lista de Tarefas
+Gerenciamento simples de tarefas com adição, listagem e marcação como concluída.
+
+### Active Recall
+Com base nos materiais indexados, o assistente gera perguntas para testar o conhecimento do aluno — uma técnica comprovada de memorização ativa.
+
+---
+
+## Pré-requisitos
+
+- Python **3.10 ou superior**
+- Git
+- Chave de API fornecida pelo professor (ou própria)
+
+---
+
+## Passo a passo para rodar o projeto
+
+### 1. Clone o repositório
+
+```bash
+git clone https://github.com/Ivan-ux3/jarvis-academico
+cd jarvis-academico-main
+```
+
+> Caso tenha baixado o projeto como `.zip`, descompacte e entre na pasta. Atenção: o zip gera uma pasta dentro de outra (`jarvis-academico-main/jarvis-academico-main`), entre na pasta interna.
+
+---
+
+### 2. Crie e ative o ambiente virtual
+
+**Windows:**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+**Linux/Mac:**
+```bash
+python -m venv venv
+source venv/bin/activate
+```
+
+---
+
+### 3. Instale as dependências
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+### 4. Configure o arquivo `.env`
+
+Crie um arquivo chamado `.env` na raiz do projeto com o seguinte conteúdo:
+
+```dotenv
+API_KEY=sua_chave_de_api_aqui
+BASE_URL=https://api.aigc.dev/v1
+MODEL_NAME=google/gemma-3-12b-it
+```
+
+> **Regras importantes para o `.env`:**
+> - **Sem aspas** nos valores
+> - **Sem espaços** ao redor do `=`
+> - Use `BASE_URL` com **underline** (não `BASE-URL` com traço)
+> - Nunca suba esse arquivo para o Git (ele já está no `.gitignore`)
+
+---
+
+### 5. Execute o projeto
+
+**Interface Web (Streamlit) — recomendado:**
+```bash
+streamlit run app/frontend/streamlit_app.py
+```
+
+O navegador abrirá automaticamente em `http://localhost:8501`.
+
+**Interface de linha de comando (CLI):**
+```bash
+python app/main.py
+```
+
+---
+
+## Exemplos de uso
+
+### Busca em PDFs (RAG)
+```
+Explique TCP
+O que é handshake?
+Qual a diferença entre TCP e UDP?
+O que são chamadas bloqueantes em sockets?
+```
+
+### Agenda acadêmica
+```
+Adicionar prova de redes amanhã
+Adicionar aula de SO na segunda-feira
+Consultar agenda
+```
+
+### Lista de tarefas
+```
+Adicionar tarefa estudar DNS
+Adicionar tarefa revisar camada de transporte
+Listar tarefas
+```
+
+### Active Recall
+```
+Me faça uma pergunta sobre TCP
+Quero praticar comunicação entre processos
+```
+
+---
+
+## Estrutura do projeto
+
+```
+jarvis-academico-main/
+├── app/
+│   ├── controllers/
+│   │   └── chat_controller.py   # Orquestra mensagens e execução das ferramentas
+│   ├── frontend/
+│   │   └── streamlit_app.py     # Interface web com Streamlit
+│   ├── learning/
+│   │   └── active_recall.py     # Geração e avaliação de perguntas de estudo
+│   ├── models/
+│   │   ├── db.py                # Criação do banco de dados SQLite
+│   │   ├── task_model.py        # Modelo de tarefas
+│   │   └── agenda_model.py      # Modelo de eventos da agenda
+│   ├── rag/
+│   │   ├── ingest.py            # Leitura e processamento dos PDFs
+│   │   ├── chunking.py          # Divisão do texto em chunks
+│   │   ├── embeddings.py        # Geração de embeddings
+│   │   ├── retrieval.py         # Busca vetorial no ChromaDB
+│   │   └── index_documents.py   # Script de indexação
+│   ├── services/
+│   │   ├── llm_service.py       # Integração com a API LLM
+│   │   └── logging_service.py   # Registro de logs das ações
+│   ├── tools/
+│   │   ├── agenda_tools.py      # Ferramentas de agenda
+│   │   ├── task_tools.py        # Ferramentas de tarefas
+│   │   ├── rag_tools.py         # Ferramenta de busca em PDFs
+│   │   └── learning_tools.py    # Ferramenta de Active Recall
+│   └── main.py                  # Ponto de entrada CLI
+├── data/
+│   ├── chroma/                  # Banco vetorial (gerado automaticamente)
+│   └── documentos/pdfs/         # PDFs usados como base de conhecimento
+├── requirements.txt
+├── .gitignore
+└── .env                         # Configuração local (não versionar!)
+```
+
+---
+
+## Tecnologias utilizadas
+
+| Tecnologia | Uso |
+|---|---|
+| [Streamlit](https://streamlit.io/) | Interface web |
+| [OpenAI SDK](https://github.com/openai/openai-python) | Comunicação com a API LLM |
+| [ChromaDB](https://www.trychroma.com/) | Banco vetorial para RAG |
+| [sentence-transformers](https://www.sbert.net/) | Geração de embeddings |
+| [pypdf](https://pypdf.readthedocs.io/) | Leitura de PDFs |
+| [python-dotenv](https://pypi.org/project/python-dotenv/) | Gerenciamento de variáveis de ambiente |
+| SQLite | Banco de dados para tarefas e agenda |
+
+---
+
+## IA's utilizadas
+
+- ChatGPT
+- Gemini
+- Claude.ai
