@@ -58,7 +58,7 @@ Com base nos materiais indexados, o assistente gera perguntas para testar o conh
 ### 1. Clone o repositório
 
 ```bash
-git clone https://github.com/<usuario>/<repositorio>.git
+git clone https://github.com/Ivan-ux3/jarvis-academico
 cd jarvis-academico-main
 ```
 
