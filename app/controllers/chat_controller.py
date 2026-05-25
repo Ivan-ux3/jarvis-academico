@@ -1,6 +1,7 @@
 import json
 
 from app.services.llm_service import perguntar_llm
+
 from app.tools.task_tools import (
     adicionar_tarefa,
     listar_tarefas,
@@ -13,7 +14,10 @@ from app.tools.agenda_tools import (
 )
 
 from app.tools.rag_tools import buscar_material_rag
-from app.tools.learning_tools import gerar_pergunta_active_recall
+
+from app.tools.learning_tools import (
+    gerar_pergunta_estudo
+)
 
 
 TOOLS = {
@@ -23,7 +27,7 @@ TOOLS = {
     "adicionar_evento_agenda": adicionar_evento_agenda,
     "consultar_agenda": consultar_agenda,
     "buscar_material_rag": buscar_material_rag,
-    "gerar_pergunta_active_recall": gerar_pergunta_active_recall,
+    "gerar_pergunta_estudo": gerar_pergunta_estudo,
 }
 
 
@@ -69,11 +73,11 @@ Você possui acesso às seguintes ferramentas:
   "query": "texto"
 }
 
-7. gerar_pergunta_active_recall
+7. gerar_pergunta_estudo
 - gera perguntas de estudo
 - argumento esperado:
 {
-  "tema": "texto"
+  "topico": "texto"
 }
 
 REGRAS IMPORTANTES:
@@ -85,6 +89,7 @@ REGRAS IMPORTANTES:
 
 
 def executar_tool(tool_name, arguments):
+
     tool_function = TOOLS.get(tool_name)
 
     if not tool_function:
@@ -98,21 +103,28 @@ def executar_tool(tool_name, arguments):
 
 
 def processar_mensagem(mensagem):
+
     resposta_llm = perguntar_llm(
         mensagem_usuario=mensagem,
         system_prompt=SYSTEM_PROMPT
     )
 
     try:
+
         tool_call = json.loads(resposta_llm)
 
         tool_name = tool_call.get("tool")
+
         arguments = tool_call.get("arguments", {})
 
-        resultado_tool = executar_tool(tool_name, arguments)
+        resultado_tool = executar_tool(
+            tool_name,
+            arguments
+        )
 
         prompt_final = f"""
 O usuário enviou a seguinte mensagem:
+
 {mensagem}
 
 Uma ferramenta foi utilizada.
@@ -124,6 +136,7 @@ Resultado da ferramenta:
 {resultado_tool}
 
 Agora responda ao usuário de forma natural, amigável e útil.
+
 NÃO mostre JSON.
 NÃO explique ferramentas internas.
 """
@@ -135,4 +148,5 @@ NÃO explique ferramentas internas.
         return resposta_final
 
     except json.JSONDecodeError:
+
         return resposta_llm
