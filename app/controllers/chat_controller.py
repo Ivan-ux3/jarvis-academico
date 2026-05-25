@@ -13,7 +13,9 @@ from app.tools.agenda_tools import (
     consultar_agenda
 )
 
-from app.tools.rag_tools import buscar_material_rag
+from app.tools.rag_tools import (
+    buscar_material_rag
+)
 
 from app.tools.learning_tools import (
     gerar_pergunta_estudo
@@ -63,16 +65,20 @@ def processar_mensagem(mensagem):
         )
 
         prompt_final = f"""
-O usuário perguntou:
+Você já recebeu o resultado de uma ferramenta.
+
+IMPORTANTE:
+- Agora você DEVE responder normalmente.
+- NÃO use ferramentas.
+- NÃO gere JSON.
+- NÃO faça tool calling.
+- Apenas explique o conteúdo ao usuário.
+
+Pergunta original do usuário:
 {mensagem}
 
 Resultado da ferramenta:
 {resultado_tool}
-
-Agora responda ao usuário de forma natural, amigável e útil.
-
-NÃO mostre JSON.
-NÃO explique ferramentas internas.
 """
 
         resposta_final = perguntar_llm(prompt_final)
