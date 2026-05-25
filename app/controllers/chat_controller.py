@@ -31,63 +31,6 @@ TOOLS = {
 }
 
 
-SYSTEM_PROMPT = """
-Você é o JARVIS Acadêmico, um assistente inteligente para estudantes.
-
-Você possui acesso às seguintes ferramentas:
-
-1. adicionar_tarefa
-- adiciona uma tarefa
-- argumento esperado:
-{
-  "tarefa": "texto"
-}
-
-2. listar_tarefas
-- lista tarefas cadastradas
-- sem argumentos
-
-3. concluir_tarefa
-- conclui uma tarefa
-- argumento esperado:
-{
-  "id": numero
-}
-
-4. adicionar_evento_agenda
-- adiciona um evento na agenda
-- argumentos esperados:
-{
-  "titulo": "texto",
-  "data": "YYYY-MM-DD"
-}
-
-5. consultar_agenda
-- consulta eventos da agenda
-- sem argumentos
-
-6. buscar_material_rag
-- busca conteúdo nos PDFs
-- argumento esperado:
-{
-  "query": "texto"
-}
-
-7. gerar_pergunta_estudo
-- gera perguntas de estudo
-- argumento esperado:
-{
-  "topico": "texto"
-}
-
-REGRAS IMPORTANTES:
-- Quando precisar usar uma ferramenta, responda APENAS com JSON válido.
-- Nunca coloque explicações antes ou depois do JSON.
-- Quando NÃO precisar de ferramenta, responda normalmente.
-- Nunca invente ferramentas.
-"""
-
-
 def executar_tool(tool_name, arguments):
 
     tool_function = TOOLS.get(tool_name)
@@ -104,10 +47,7 @@ def executar_tool(tool_name, arguments):
 
 def processar_mensagem(mensagem):
 
-    resposta_llm = perguntar_llm(
-        mensagem_usuario=mensagem,
-        system_prompt=SYSTEM_PROMPT
-    )
+    resposta_llm = perguntar_llm(mensagem)
 
     try:
 
@@ -123,14 +63,8 @@ def processar_mensagem(mensagem):
         )
 
         prompt_final = f"""
-O usuário enviou a seguinte mensagem:
-
+O usuário perguntou:
 {mensagem}
-
-Uma ferramenta foi utilizada.
-
-Ferramenta:
-{tool_name}
 
 Resultado da ferramenta:
 {resultado_tool}
@@ -141,9 +75,7 @@ NÃO mostre JSON.
 NÃO explique ferramentas internas.
 """
 
-        resposta_final = perguntar_llm(
-            mensagem_usuario=prompt_final
-        )
+        resposta_final = perguntar_llm(prompt_final)
 
         return resposta_final
 
