@@ -64,26 +64,7 @@ def processar_mensagem(mensagem):
             arguments
         )
 
-        prompt_final = f"""
-Você já recebeu o resultado de uma ferramenta.
-
-IMPORTANTE:
-- Agora você DEVE responder normalmente.
-- NÃO use ferramentas.
-- NÃO gere JSON.
-- NÃO faça tool calling.
-- Apenas explique o conteúdo ao usuário.
-
-Pergunta original do usuário:
-{mensagem}
-
-Resultado da ferramenta:
-{resultado_tool}
-"""
-
-        resposta_final = perguntar_llm(prompt_final)
-
-        return resposta_final
+        return resultado_tool
 
     except json.JSONDecodeError:
 
