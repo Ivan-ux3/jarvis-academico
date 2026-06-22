@@ -22,7 +22,7 @@ from app.tools.learning_tools import (
 )
 
 from app.tools.study_tools import (
-    gerar_plano_estudos
+    planejar_estudos
 )
 
 
@@ -42,7 +42,7 @@ TOOLS = {
 
     "gerar_pergunta_estudo": gerar_pergunta_estudo,
 
-    "gerar_plano_estudos": gerar_plano_estudos
+    "planejar_estudos": planejar_estudos
 
 }
 
@@ -135,7 +135,6 @@ def processar_mensagem(mensagem):
         )
 
         return resultado_tool
-
 
     except json.JSONDecodeError as e:
 
