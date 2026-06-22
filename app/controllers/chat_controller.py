@@ -13,29 +13,20 @@ from app.tools.agenda_tools import (
     adicionar_evento_agenda
 )
 
-from app.tools.rag_tools import (
-    buscar_material_rag
-)
+from app.tools.rag_tools import buscar_material_rag
 
-from app.tools.learning_tools import (
-    gerar_pergunta_estudo
-)
+from app.tools.learning_tools import gerar_pergunta_estudo
 
-from app.tools.study_tools import (
-    planejar_estudos
-)
+from app.tools.study_tools import planejar_estudos
 
 
 TOOLS = {
 
     "adicionar_tarefa": tool_adicionar_tarefa,
-
     "listar_tarefas": tool_listar_tarefas,
-
     "concluir_tarefa": tool_concluir_tarefa,
 
     "consultar_agenda": consultar_agenda,
-
     "adicionar_evento_agenda": adicionar_evento_agenda,
 
     "buscar_material_rag": buscar_material_rag,
@@ -53,22 +44,20 @@ def executar_tool(tool_name, arguments):
         return f"Ferramenta '{tool_name}' não encontrada."
 
     try:
-
         func = TOOLS[tool_name]
+
+        print("[DEBUG ARGUMENTS]", arguments)
 
         if not isinstance(arguments, dict):
             arguments = {}
 
-        print(f"[TOOL DEBUG] {tool_name} -> {arguments}")
-
-        return func(**arguments)
+        try:
+            return func(**arguments)
+        except TypeError:
+            return func()
 
     except Exception as e:
-
-        print(
-            f"[ERRO TOOL CALLING] {tool_name} -> {e}"
-        )
-
+        print(f"[ERRO TOOL CALLING] {tool_name} -> {e}")
         return f"[ERRO TOOL] {str(e)}"
 
 
@@ -80,70 +69,31 @@ def processar_mensagem(mensagem):
         return "[ERRO] LLM retornou vazio"
 
     resposta_limpa = (
-
         resposta_llm
         .replace("```json", "")
         .replace("```", "")
         .strip()
-
     )
 
     print(f"[LLM RAW] {resposta_llm}")
 
     try:
+        resposta_json = json.loads(resposta_limpa)
 
-        resposta_json = json.loads(
-            resposta_limpa
-        )
-
-        tool_name = resposta_json.get(
-            "tool"
-        )
-
-        arguments = resposta_json.get(
-            "arguments",
-            {}
-        )
+        tool_name = resposta_json.get("tool")
+        arguments = resposta_json.get("arguments", {})
 
         if not tool_name:
             return resposta_llm
 
-        print(
+        print(f"[TOOL CALL] {tool_name} -> {arguments}")
 
-            f"[TOOL CALL] "
+        resultado_tool = executar_tool(tool_name, arguments)
 
-            f"{tool_name} -> "
-
-            f"{arguments}"
-
-        )
-
-        resultado_tool = executar_tool(
-
-            tool_name,
-
-            arguments
-
-        )
-
-        print(
-
-            f"[TOOL RESULT] "
-
-            f"{resultado_tool}"
-
-        )
+        print(f"[TOOL RESULT] {resultado_tool}")
 
         return resultado_tool
 
     except json.JSONDecodeError as e:
-
-        print(
-
-            f"[JSON ERROR] "
-
-            f"{e}"
-
-        )
-
+        print(f"[JSON ERROR] {e}")
         return resposta_llm

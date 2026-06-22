@@ -19,6 +19,9 @@ def consultar_contexto_estudos(tema=None):
 
 def planejar_estudos(tema=None):
 
+    if not tema:
+        tema = "Redes"
+
     plano_estudos = controller.gerar_plano_estudos(tema)
 
     registrar_log(
