@@ -25,24 +25,39 @@ def create_tables():
     cursor.execute(
         '''
         CREATE TABLE IF NOT EXISTS tarefas (
+
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+
             descricao TEXT NOT NULL,
+
             status TEXT NOT NULL
+
         )
         '''
     )
+
 
     cursor.execute(
         '''
         CREATE TABLE IF NOT EXISTS agenda (
+
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+
             titulo TEXT NOT NULL,
+
             data TEXT NOT NULL,
+
             tipo TEXT NOT NULL
+
         )
         '''
     )
 
+
     conn.commit()
 
     conn.close()
+
+
+# Garante que as tabelas existam
+create_tables()
