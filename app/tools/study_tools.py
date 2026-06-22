@@ -19,7 +19,6 @@ def consultar_contexto_estudos(tema=None):
 
 def planejar_estudos(tema=None):
 
-    # 🔥 proteção contra None vindo da LLM
     if not tema:
         tema = "Redes"
 

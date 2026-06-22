@@ -23,20 +23,17 @@ from app.tools.study_tools import planejar_estudos
 TOOLS = {
 
     "adicionar_tarefa": tool_adicionar_tarefa,
-
     "listar_tarefas": tool_listar_tarefas,
-
     "concluir_tarefa": tool_concluir_tarefa,
 
     "consultar_agenda": consultar_agenda,
-
     "adicionar_evento_agenda": adicionar_evento_agenda,
 
     "buscar_material_rag": buscar_material_rag,
 
     "gerar_pergunta_estudo": gerar_pergunta_estudo,
 
-    "gerar_plano_estudos": planejar_estudos
+    "planejar_estudos": planejar_estudos
 
 }
 
@@ -47,7 +44,6 @@ def executar_tool(tool_name, arguments):
         return f"Ferramenta '{tool_name}' não encontrada."
 
     try:
-
         func = TOOLS[tool_name]
 
         print("[DEBUG ARGUMENTS]", arguments)
@@ -61,9 +57,7 @@ def executar_tool(tool_name, arguments):
             return func()
 
     except Exception as e:
-
         print(f"[ERRO TOOL CALLING] {tool_name} -> {e}")
-
         return f"[ERRO TOOL] {str(e)}"
 
 
@@ -84,7 +78,6 @@ def processar_mensagem(mensagem):
     print(f"[LLM RAW] {resposta_llm}")
 
     try:
-
         resposta_json = json.loads(resposta_limpa)
 
         tool_name = resposta_json.get("tool")
@@ -102,7 +95,5 @@ def processar_mensagem(mensagem):
         return resultado_tool
 
     except json.JSONDecodeError as e:
-
         print(f"[JSON ERROR] {e}")
-
         return resposta_llm
