@@ -50,13 +50,11 @@ def executar_tool(tool_name, arguments):
 
         func = TOOLS[tool_name]
 
-        # 🔥 DEBUG IMPORTANTE
         print("[DEBUG ARGUMENTS]", arguments)
 
         if not isinstance(arguments, dict):
             arguments = {}
 
-        # 🔥 proteção contra argumento faltando ou inválido
         try:
             return func(**arguments)
         except TypeError:
