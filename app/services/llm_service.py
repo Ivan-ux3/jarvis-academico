@@ -12,7 +12,6 @@ API_KEY = os.getenv('API_KEY')
 BASE_URL = os.getenv('BASE_URL')
 MODEL_NAME = os.getenv('MODEL_NAME')
 
-<<<<<<< HEAD
 client = None
 
 if API_KEY and BASE_URL:
@@ -21,13 +20,6 @@ if API_KEY and BASE_URL:
         base_url=BASE_URL,
         api_key=API_KEY
     )
-=======
-
-client = OpenAI(
-    base_url=BASE_URL,
-    api_key=API_KEY
-)
->>>>>>> main
 
 
 TOOLS = [
@@ -80,6 +72,9 @@ TOOLS = [
 
 def perguntar_llm(mensagem):
 
+    if not client:
+        return "Cliente LLM não configurado."
+
     prompt = f'''
 Você é um assistente acadêmico chamado JARVIS.
 
@@ -88,7 +83,6 @@ Você possui ferramentas.
 Ferramentas disponíveis:
 
 {json.dumps(TOOLS, indent=2, ensure_ascii=False)}
-
 
 IMPORTANTE:
 
@@ -126,23 +120,18 @@ semana de estudos
 
 use gerar_plano_estudos.
 
-
 Se precisar usar ferramenta,
 responda APENAS JSON.
 
-
 Exemplo:
-
 
 {{
     "tool": "nome_da_tool",
     "arguments": {{}}
 }}
 
-
 Caso não precise usar ferramenta,
 responda normalmente.
-
 
 Mensagem:
 
