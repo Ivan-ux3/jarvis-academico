@@ -19,6 +19,10 @@ def buscar_material_rag(query):
     if not documentos:
         return "Nenhum documento encontrado."
 
+    # proteção para testes sem API
+    if client is None:
+        return "LLM não configurada."
+
     contexto = "\n".join(documentos)
 
     prompt = f"""

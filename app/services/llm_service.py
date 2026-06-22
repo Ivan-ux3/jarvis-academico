@@ -10,10 +10,14 @@ API_KEY = os.getenv('API_KEY')
 BASE_URL = os.getenv('BASE_URL')
 MODEL_NAME = os.getenv('MODEL_NAME')
 
-client = OpenAI(
-    base_url=BASE_URL,
-    api_key=API_KEY
-)
+client = None
+
+if API_KEY and BASE_URL:
+
+    client = OpenAI(
+        base_url=BASE_URL,
+        api_key=API_KEY
+    )
 
 TOOLS = [
     {
